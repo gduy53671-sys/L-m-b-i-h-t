@@ -1,0 +1,344 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Singer Studio</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#090b18;--panel:#14172b;--pink:#ff43b9;--blue:#5ee7ff}
+body{
+ margin:0;background:radial-gradient(ellipse at top,#252052,#090b18 65%);
+ color:#fff;font-family:Arial,sans-serif;min-height:100vh;padding:18px
+}
+.app{max-width:900px;margin:auto}
+header{text-align:center;padding:24px 0}
+.logo{font-size:42px;filter:drop-shadow(0 0 15px #ff43b9)}
+h1{font-size:30px;margin:10px 0;background:linear-gradient(90deg,#ff43b9,#5ee7ff);
+ -webkit-background-clip:text;color:transparent}
+.sub{color:#aaaecb;font-size:14px}
+.panel{background:#14172bea;border:1px solid #39365c;border-radius:18px;
+ padding:19px;margin:14px 0;box-shadow:0 8px 30px #0005}
+h2{font-size:17px;margin-top:0;color:#75eaff}
+label{display:block;color:#c9c9e0;font-size:13px;margin:15px 0 8px}
+textarea,input,select{
+ width:100%;background:#090d20;color:white;border:1px solid #393d60;
+ border-radius:10px;padding:12px;font-size:14px;outline:none
+}
+textarea:focus,input:focus,select:focus{border-color:#ff43b9}
+textarea{min-height:155px;resize:vertical;line-height:1.7}
+input[type=file]{padding:10px}
+input[type=range]{padding:0;accent-color:#ff43b9}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+button{border:0;border-radius:12px;padding:13px 17px;font-weight:bold;
+ cursor:pointer;color:white;background:#292d4c}
+button:active{transform:scale(.98)}
+.primary{background:linear-gradient(100deg,#ff37ae,#795bff);width:100%;
+ font-size:16px;padding:16px;box-shadow:0 0 20px #b43d9c45}
+.secondary{border:1px solid #45476b}
+.row{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.row button{flex:1}
+.status{background:#0b1020;border-radius:10px;padding:13px;
+ color:#b7bdd7;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.meter{display:flex;align-items:center;justify-content:center;gap:5px;height:58px}
+.meter i{width:5px;border-radius:6px;background:linear-gradient(#ff43b9,#5ee7ff);
+ height:12px;animation:wave .7s ease-in-out infinite alternate}
+.meter i:nth-child(3n){animation-delay:.3s}
+.meter i:nth-child(2n){animation-delay:.15s}
+@keyframes wave{to{height:48px}}
+.meter.paused i{animation-play-state:paused;height:7px}
+small{color:#999dbb;line-height:1.7}
+footer{text-align:center;color:#767b9b;padding:22px;font-size:12px}
+audio{width:100%;margin-top:12px}
+.pill{display:inline-block;border:1px solid #514675;border-radius:30px;
+ padding:7px 11px;font-size:12px;color:#d5bfff;margin:3px}
+@media(max-width:560px){.grid{grid-template-columns:1fr}body{padding:12px}
+ h1{font-size:26px}.panel{padding:15px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div class="logo">🎙️</div>
+ <h1>AI SINGER STUDIO</h1>
+ <div class="sub">YOUR LYRICS · YOUR BEAT · YOUR SONG</div>
+ <p><span class="pill">🎵 Beat Sync</span>
+ <span class="pill">🎤 AI Vocal</span>
+ <span class="pill">✨ Music Studio</span></p>
+</header>
+
+<section class="panel">
+ <h2>🎼 01 — Beat của bạn</h2>
+ <label>Chọn beat (MP3, WAV, M4A... tùy trình duyệt)</label>
+ <input id="beatFile" type="file" accept="audio/*">
+ <div class="meter paused" id="meter">
+   <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+   <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+ </div>
+ <audio id="beatPlayer" controls></audio>
+ <div class="grid">
+  <div>
+   <label>BPM của beat</label>
+   <input id="bpm" type="number" min="40" max="240" value="100">
+  </div>
+  <div>
+   <label>Nhịp bài hát</label>
+   <select id="timeSig">
+    <option value="4/4">4/4 — phổ biến</option>
+    <option value="3/4">3/4 — Waltz</option>
+    <option value="6/8">6/8 — Ballad</option>
+   </select>
+  </div>
+ </div>
+ <small>BPM giúp AI định hướng nhịp. Nếu chưa biết BPM, hãy kiểm tra beat bằng công cụ đo BPM.</small>
+</section>
+
+<section class="panel">
+ <h2>✍️ 02 — Lời bài hát</h2>
+ <label>Nhập lời bạn muốn AI hát</label>
+ <textarea id="lyrics" placeholder="Verse 1:
+Đêm nay anh viết những câu ca...
+Từng nhịp tim vang theo tiếng nhạc...
+
+Pre-Chorus:
+...
+
+Chorus:
+...
+
+[Verse] [Chorus] [Bridge]"></textarea>
+ <div class="row">
+  <button class="secondary" onclick="insertTag('[Verse]')">+ Verse</button>
+  <button class="secondary" onclick="insertTag('[Chorus]')">+ Chorus</button>
+  <button class="secondary" onclick="insertTag('[Bridge]')">+ Bridge</button>
+ </div>
+ <label>Phong cách âm nhạc</label>
+ <select id="style">
+  <option>Rap melodic</option>
+  <option>Rap Việt</option>
+  <option>Pop hiện đại</option>
+  <option>Ballad buồn</option>
+  <option>Chill / Lofi</option>
+  <option>R&B</option>
+  <option>EDM</option>
+  <option>Acoustic</option>
+ </select>
+ <div class="grid">
+  <div>
+   <label>Giọng hát</label>
+   <select id="voice">
+    <option>Nam trầm</option>
+    <option>Nam trẻ trung</option>
+    <option>Nữ nhẹ nhàng</option>
+    <option>Nữ cao</option>
+    <option>Rap mạnh mẽ</option>
+    <option>Song ca</option>
+   </select>
+  </div>
+  <div>
+   <label>Cảm xúc</label>
+   <select id="mood">
+    <option>Truyền cảm</option>
+    <option>Buồn sâu lắng</option>
+    <option>Vui tươi</option>
+    <option>Năng lượng mạnh</option>
+    <option>Lãng mạn</option>
+    <option>Chill thư giãn</option>
+   </select>
+  </div>
+ </div>
+ <label>Độ sáng tạo của bản phối: <span id="creativityValue">50%</span></label>
+ <input id="creativity" type="range" min="0" max="100" value="50"
+ oninput="creativityValue.textContent=this.value+'%'">
+</section>
+
+<section class="panel">
+ <h2>⚙️ 03 — Kết nối AI tạo giọng hát</h2>
+ <p class="sub">Để tạo giọng hát thật, cần một máy chủ/API AI hỗ trợ nhận lời, beat và trả về âm thanh.</p>
+ <label>Địa chỉ API của dịch vụ AI (nếu có)</label>
+ <input id="apiUrl" type="url" placeholder="https://may-chu-cua-ban/api/generate">
+ <label>API key (không bắt buộc với máy chủ tự quản)</label>
+ <input id="apiKey" type="password" autocomplete="off"
+ placeholder="Nhập khóa API nếu dịch vụ yêu cầu">
+ <small>
+ Máy chủ cần nhận dữ liệu multipart/form-data gồm beat, lyrics, BPM,
+ style, voice và mood; sau đó trả về file âm thanh hoặc JSON có trường
+ audioUrl. Định dạng thực tế tùy API. Không đưa khóa bí mật vào website
+ công khai; hãy giữ khóa trên máy chủ.
+ </small>
+ <div style="height:14px"></div>
+ <button class="primary" id="generateBtn" onclick="generateSong()">
+ ✨ TẠO BÀI HÁT BẰNG AI
+ </button>
+ <div style="height:12px"></div>
+ <div class="status" id="status">🎧 Sẵn sàng. Hãy tải beat và nhập lời bài hát.</div>
+</section>
+
+<section class="panel">
+ <h2>💿 04 — Bản nhạc kết quả</h2>
+ <audio id="resultPlayer" controls></audio>
+ <div class="row">
+  <button class="secondary" onclick="downloadSong()">⬇️ Tải bài hát</button>
+  <button class="secondary" onclick="copyPrompt()">📋 Sao chép mô tả AI</button>
+ </div>
+ <p><small>Chỉ có thể tải bài hát sau khi API tạo thành công và trả về file âm thanh.</small></p>
+</section>
+
+<footer>AI SINGER STUDIO · CREATE YOUR OWN MUSIC 🎵</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let beatUrl = null;
+let resultUrl = null;
+
+$('beatFile').addEventListener('change', e => {
+ const file = e.target.files[0];
+ if (!file) return;
+ if (beatUrl) URL.revokeObjectURL(beatUrl);
+ beatUrl = URL.createObjectURL(file);
+ $('beatPlayer').src = beatUrl;
+ $('status').textContent = '✅ Đã tải beat: ' + file.name;
+});
+
+$('beatPlayer').addEventListener('play', () => {
+ $('meter').classList.remove('paused');
+});
+$('beatPlayer').addEventListener('pause', () => {
+ $('meter').classList.add('paused');
+});
+
+function insertTag(tag) {
+ const area = $('lyrics');
+ const start = area.selectionStart;
+ const end = area.selectionEnd;
+ area.setRangeText(tag + '\n', start, end, 'end');
+ area.focus();
+}
+
+function makePrompt() {
+ return [
+  'Create a complete vocal song using the uploaded instrumental beat.',
+  'Sing these exact lyrics; do not replace or omit lines:',
+  $('lyrics').value,
+  'Genre: ' + $('style').value,
+  'Voice: ' + $('voice').value,
+  'Mood: ' + $('mood').value,
+  'Target BPM: ' + $('bpm').value,
+  'Time signature: ' + $('timeSig').value,
+  'Creativity: ' + $('creativity').value + '%',
+  'Align vocal timing, phrasing and syllables to the beat.',
+  'Preserve the instrumental and avoid drifting off tempo.'
+ ].join('\n');
+}
+
+async function generateSong() {
+ const file = $('beatFile').files[0];
+ const lyrics = $('lyrics').value.trim();
+ const endpoint = $('apiUrl').value.trim();
+
+ if (!file) {
+  $('status').textContent = '⚠️ Bạn hãy tải beat lên trước.';
+  return;
+ }
+ if (!lyrics) {
+  $('status').textContent = '⚠️ Bạn hãy nhập lời bài hát.';
+  return;
+ }
+ if (!endpoint) {
+  $('status').textContent =
+   'ℹ️ Giao diện đã sẵn sàng nhưng chưa kết nối dịch vụ tạo giọng hát AI. ' +
+   'Hãy điền API endpoint tương thích hoặc kết nối máy chủ AI. ' +
+   'Nút này không thể tự tạo giọng hát khi chưa có dịch vụ.';
+  return;
+ }
+
+ const btn = $('generateBtn');
+ btn.disabled = true;
+ btn.textContent = '⏳ ĐANG GỬI ĐẾN AI...';
+ $('status').textContent = 'Đang gửi beat và lời bài hát đến máy chủ...';
+
+ try {
+  const data = new FormData();
+  data.append('beat', file);
+  data.append('lyrics', lyrics);
+  data.append('bpm', $('bpm').value);
+  data.append('timeSignature', $('timeSig').value);
+  data.append('style', $('style').value);
+  data.append('voice', $('voice').value);
+  data.append('mood', $('mood').value);
+  data.append('creativity', $('creativity').value);
+  data.append('prompt', makePrompt());
+
+  const headers = {};
+  const key = $('apiKey').value.trim();
+  if (key) headers['Authorization'] = 'Bearer ' + key;
+
+  const response = await fetch(endpoint, {
+   method: 'POST',
+   headers,
+   body: data
+  });
+
+  if (!response.ok) throw new Error('Máy chủ trả về HTTP ' + response.status);
+
+  const type = response.headers.get('content-type') || '';
+  let blob;
+
+  if (type.includes('audio/')) {
+   blob = await response.blob();
+  } else if (type.includes('application/json')) {
+   const json = await response.json();
+   if (json.audioUrl) {
+    const audioResponse = await fetch(json.audioUrl);
+    if (!audioResponse.ok) throw new Error('Không tải được file âm thanh.');
+    blob = await audioResponse.blob();
+   } else if (json.audioBase64) {
+    const binary = atob(json.audioBase64);
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+    blob = new Blob([bytes], {type: json.mimeType || 'audio/mpeg'});
+   } else {
+    throw new Error(json.message || 'API chưa trả về audioUrl hoặc audioBase64.');
+   }
+  } else {
+   throw new Error('Định dạng phản hồi không được hỗ trợ.');
+  }
+
+  if (resultUrl) URL.revokeObjectURL(resultUrl);
+  resultUrl = URL.createObjectURL(blob);
+  $('resultPlayer').src = resultUrl;
+  $('status').textContent = '✅ Nhận được âm thanh từ máy chủ AI. Hãy nghe thử!';
+ } catch (err) {
+  $('status').textContent =
+   '❌ Không tạo được bài hát: ' + err.message +
+   '. Hãy kiểm tra endpoint, kết nối mạng, CORS và định dạng API.';
+ } finally {
+  btn.disabled = false;
+  btn.textContent = '✨ TẠO BÀI HÁT BẰNG AI';
+ }
+}
+
+function downloadSong() {
+ if (!resultUrl) {
+  $('status').textContent = '⚠️ Chưa có bản nhạc AI để tải.';
+  return;
+ }
+ const a = document.createElement('a');
+ a.href = resultUrl;
+ a.download = 'ai-singer-song.mp3';
+ a.click();
+}
+
+async function copyPrompt() {
+ try {
+  await navigator.clipboard.writeText(makePrompt());
+  $('status').textContent = '📋 Đã sao chép mô tả bài hát AI.';
+ } catch {
+  $('status').textContent =
+   'Trình duyệt không cho phép sao chép tự động. Hãy sao chép nội dung lời và mô tả thủ công.';
+ }
+}
+</script>
+</body>
+</html>
